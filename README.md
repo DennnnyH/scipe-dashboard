@@ -2,6 +2,18 @@
 
 Campus network flow CSVs are labeled with a user class, a random forest is trained on that labeled file, and a small dashboard shows how often the model is wrong on a held-out half of the data.
 
+## Data is not in this repository
+
+`.gitignore` excludes every `*.csv` and the `notebook_runs/` folder. A clone from GitHub has the notebooks, scripts, and dashboard code, and none of the flow data or lookup tables. You have to place those files on disk yourself before preprocessing or classification will run.
+
+| You supply | Where it goes |
+|------------|----------------|
+| Campus flow exports | `downloaded_data/processed_data/*.csv` |
+| IP-to-user-class map | `ip_user_map-v1.csv` in the repo root |
+| Extra IP map for flows the first file misses | `HiloFlowIPMissingMap.csv` in the repo root |
+
+Preprocessing writes `userclasses_mapped_v2.csv` in the repo root. That file is also ignored, so it exists only on the machine that ran the notebook. The JSON under `dashboard/data/` is committed and is a snapshot from one local run; it is not the raw flows.
+
 ## How it fits together
 
 ```
@@ -45,10 +57,7 @@ Overall status is green when both anomaly counts are zero, yellow when only “m
 
 - Python 3.10+ with `pandas`, `numpy`, `scikit-learn`, `matplotlib`, `seaborn`, and Jupyter (`jupyter` / `nbconvert`)
 - Node.js 18+ for the dashboard
-- These files in the repo root (they are not produced by the watcher):
-
-  - `ip_user_map-v1.csv`
-  - `HiloFlowIPMissingMap.csv`
+- The two root CSVs listed above. They are inputs, not outputs of the watcher, and they are not in the GitHub tree.
 
 Preprocessing installs [ipcrypt](https://github.com/jedisct1/draft-denis-ipcrypt) from Git the first time that notebook runs (`%pip` in the first code cell).
 

@@ -1,0 +1,124 @@
+{
+  "accuracy": 0.996567,
+  "classes": [
+    "Admin",
+    "External",
+    "Faculty",
+    "Fiscal",
+    "IT",
+    "Infrastructure",
+    "Manager",
+    "Observer",
+    "Other",
+    "Outreach",
+    "Phone",
+    "Printer",
+    "RemoteControl",
+    "Repository",
+    "Researcher",
+    "Student",
+    "Visitor"
+  ],
+  "misclassification_pairs": [
+    {
+      "true_userclass": "Repository",
+      "predicted_userclass": "Researcher",
+      "count": 18
+    },
+    {
+      "true_userclass": "Researcher",
+      "predicted_userclass": "Repository",
+      "count": 13
+    },
+    {
+      "true_userclass": "Other",
+      "predicted_userclass": "Student",
+      "count": 7
+    },
+    {
+      "true_userclass": "Other",
+      "predicted_userclass": "Manager",
+      "count": 6
+    },
+    {
+      "true_userclass": "Admin",
+      "predicted_userclass": "Fiscal",
+      "count": 6
+    },
+    {
+      "true_userclass": "Admin",
+      "predicted_userclass": "Visitor",
+      "count": 6
+    },
+    {
+      "true_userclass": "Visitor",
+      "predicted_userclass": "Other",
+      "count": 6
+    },
+    {
+      "true_userclass": "Fiscal",
+      "predicted_userclass": "Manager",
+      "count": 5
+    },
+    {
+      "true_userclass": "Manager",
+      "predicted_userclass": "Visitor",
+      "count": 5
+    },
+    {
+      "true_userclass": "Researcher",
+      "predicted_userclass": "Other",
+      "count": 5
+    },
+    {
+      "true_userclass": "Fiscal",
+      "predicted_userclass": "Admin",
+      "count": 5
+    },
+    {
+      "true_userclass": "Other",
+      "predicted_userclass": "Faculty",
+      "count": 4
+    },
+    {
+      "true_userclass": "Faculty",
+      "predicted_userclass": "IT",
+      "count": 4
+    },
+    {
+      "true_userclass": "RemoteControl",
+      "predicted_userclass": "Researcher",
+      "count": 4
+    },
+    {
+      "true_userclass": "Printer",
+      "predicted_userclass": "Infrastructure",
+      "count": 4
+    },
+    {
+      "true_userclass": "Researcher",
+      "predicted_userclass": "Infrastructure",
+      "count": 4
+    },
+    {
+      "true_userclass": "RemoteControl",
+      "predicted_userclass": "Repository",
+      "count": 3
+    },
+    {
+      "true_userclass": "Researcher",
+      "predicted_userclass": "RemoteControl",
+      "count": 3
+    },
+    {
+      "true_userclass": "Fiscal",
+      "predicted_userclass": "Visitor",
+      "count": 2
+    },
+    {
+      "true_userclass": "Repository",
+      "predicted_userclass": "RemoteControl",
+      "count": 2
+    }
+  ]
+}

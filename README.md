@@ -12,7 +12,7 @@ Campus network flow CSVs are labeled with a user class, a random forest is train
 | IP-to-user-class map | `ip_user_map-v1.csv` in the repo root |
 | Extra IP map for flows the first file misses | `HiloFlowIPMissingMap.csv` in the repo root |
 
-Preprocessing writes `userclasses_mapped_v2.csv` in the repo root. That file is also ignored, so it exists only on the machine that ran the notebook. The JSON under `dashboard/data/` is committed and is a snapshot from one local run; it is not the raw flows.
+Preprocessing writes `userclasses_mapped_v2.csv` in the repo root. That file is also ignored, so it exists only on the machine that ran the notebook. The JSON under `dashboard/data/` is ignored too. Run the export script locally to create `summary.json`, `anomalies.json`, and `metrics.json` before starting the dashboard.
 
 ## How it fits together
 

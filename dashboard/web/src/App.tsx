@@ -45,10 +45,12 @@ export default function App() {
         </header>
         <main className="flex-1 p-6">
           {page === "overview" && (
-            <OverviewPage summary={summary} metrics={metrics} />
+            <OverviewPage summary={summary} metrics={metrics} anomalies={anomalies} />
           )}
           {page === "anomalies" && <AnomaliesPage anomalies={anomalies} />}
-          {page === "confusion" && <ConfusionPage metrics={metrics} />}
+          {page === "confusion" && (
+            <ConfusionPage metrics={metrics} anomalies={anomalies} />
+          )}
         </main>
       </div>
     </div>

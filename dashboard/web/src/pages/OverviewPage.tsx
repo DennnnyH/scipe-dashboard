@@ -1,4 +1,4 @@
-import type { Metrics, Summary } from "../types";
+import type { AnomalyRow, Metrics, Summary } from "../types";
 import { StatCards } from "../components/StatCards";
 import { StatusBanner } from "../components/StatusBanner";
 import { ConfusionChart } from "../components/ConfusionChart";
@@ -7,9 +7,11 @@ import { TierDonut } from "../components/TierDonut";
 export function OverviewPage({
   summary,
   metrics,
+  anomalies,
 }: {
   summary: Summary;
   metrics: Metrics;
+  anomalies: AnomalyRow[];
 }) {
   return (
     <div className="space-y-6">
@@ -41,7 +43,7 @@ export function OverviewPage({
         </div>
       </div>
 
-      <ConfusionChart pairs={metrics.misclassification_pairs} />
+      <ConfusionChart pairs={metrics.misclassification_pairs} anomalies={anomalies} />
     </div>
   );
 }

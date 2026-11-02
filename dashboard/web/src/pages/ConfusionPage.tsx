@@ -1,7 +1,13 @@
-import type { Metrics } from "../types";
+import type { AnomalyRow, Metrics } from "../types";
 import { ConfusionChart } from "../components/ConfusionChart";
 
-export function ConfusionPage({ metrics }: { metrics: Metrics }) {
+export function ConfusionPage({
+  metrics,
+  anomalies,
+}: {
+  metrics: Metrics;
+  anomalies: AnomalyRow[];
+}) {
   return (
     <div className="space-y-6">
       <div>
@@ -11,7 +17,7 @@ export function ConfusionPage({ metrics }: { metrics: Metrics }) {
           another — useful for tuning labels and training data.
         </p>
       </div>
-      <ConfusionChart pairs={metrics.misclassification_pairs} />
+      <ConfusionChart pairs={metrics.misclassification_pairs} anomalies={anomalies} />
       <div className="rounded-xl border border-uh-green/10 bg-white shadow-card overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-uh-sand text-left text-xs uppercase text-uh-slate/70">

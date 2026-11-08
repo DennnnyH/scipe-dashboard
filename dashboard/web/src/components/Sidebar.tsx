@@ -80,7 +80,7 @@ export function Sidebar({
         </button>
         {!collapsed && (
           <p className="mt-3 px-1 text-[10px] leading-relaxed text-white/50">
-            Evaluation mode — test split from training data. Live ingest coming
+            Scored with the saved classification model. Live ingest coming
             later.
           </p>
         )}

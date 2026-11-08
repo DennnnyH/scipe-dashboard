@@ -27,7 +27,7 @@ export function OverviewPage({
               <dd className="font-medium">{summary.model}</dd>
             </div>
             <div>
-              <dt className="text-uh-slate/60">Test accuracy</dt>
+              <dt className="text-uh-slate/60">Accuracy on labeled flows</dt>
               <dd className="text-2xl font-bold text-uh-green">
                 {(metrics.accuracy * 100).toFixed(2)}%
               </dd>

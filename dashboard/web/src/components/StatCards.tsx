@@ -48,7 +48,7 @@ export function StatCards({ summary }: { summary: Summary }) {
       <Card
         title="Flows evaluated"
         value={counts.rows_total}
-        subtitle="Held-out test split (50%)"
+        subtitle="All labeled flows scored by the saved model"
         accent="bg-uh-gold"
       />
     </div>

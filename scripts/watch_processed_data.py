@@ -1,10 +1,10 @@
 """
 Watch downloaded_data/processed_data and, after new or changed CSVs settle,
-run the notebooks in order:
+run, in order:
 
   1. flow_preprocessing.ipynb   -> userclasses_mapped_v2.csv
-  2. user_classification.ipynb  -> train and evaluate on that file
-  3. scripts/export_dashboard_snapshot.py -> dashboard/data/*.json
+  2. scripts/export_dashboard_snapshot.py -> score that file with
+     user_classification_model.joblib and write dashboard/data/*.json
 
 Start from the repo root:
 
@@ -21,7 +21,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = REPO_ROOT / "downloaded_data" / "processed_data"
 PREPROCESS_NB = REPO_ROOT / "flow_preprocessing.ipynb"
-CLASSIFY_NB = REPO_ROOT / "user_classification.ipynb"
 EXPORT_SCRIPT = REPO_ROOT / "scripts" / "export_dashboard_snapshot.py"
 RUN_DIR = REPO_ROOT / "notebook_runs"
 
@@ -64,9 +63,7 @@ def execute_notebook(notebook: Path) -> None:
 def pipeline() -> None:
     print("Running flow_preprocessing.ipynb", flush=True)
     execute_notebook(PREPROCESS_NB)
-    print("Running user_classification.ipynb", flush=True)
-    execute_notebook(CLASSIFY_NB)
-    print("Refreshing dashboard JSON", flush=True)
+    print("Scoring flows with the saved model", flush=True)
     run([sys.executable, str(EXPORT_SCRIPT)])
     print("Pipeline finished", flush=True)
 

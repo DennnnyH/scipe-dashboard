@@ -16,6 +16,10 @@ const MAP: Record<
     label: "Normal",
     className: "bg-status-green/15 text-status-green ring-status-green/30",
   },
+  unlabeled: {
+    label: "Unlabeled",
+    className: "bg-status-unlabeled/15 text-status-unlabeled ring-status-unlabeled/30",
+  },
 };
 
 export function TierBadge({ tier }: { tier: AnomalyTier }) {

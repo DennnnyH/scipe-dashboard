@@ -1,10 +1,7 @@
 """
 Watch downloaded_data/processed_data and, after new or changed CSVs settle,
-run, in order:
-
-  1. flow_preprocessing.ipynb   -> userclasses_mapped_v2.csv
-  2. scripts/export_dashboard_snapshot.py -> score that file with
-     user_classification_model.joblib and write dashboard/data/*.json
+run scripts/export_dashboard_snapshot.py (score every CSV with
+user_classification_model.joblib and write dashboard/data/*.json).
 
 Start from the repo root:
 
@@ -20,9 +17,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = REPO_ROOT / "downloaded_data" / "processed_data"
-PREPROCESS_NB = REPO_ROOT / "flow_preprocessing.ipynb"
 EXPORT_SCRIPT = REPO_ROOT / "scripts" / "export_dashboard_snapshot.py"
-RUN_DIR = REPO_ROOT / "notebook_runs"
 
 POLL_SECONDS = 5
 SETTLE_SECONDS = 15
@@ -40,30 +35,8 @@ def run(cmd: list[str]) -> None:
     subprocess.run(cmd, cwd=REPO_ROOT, check=True)
 
 
-def execute_notebook(notebook: Path) -> None:
-    RUN_DIR.mkdir(parents=True, exist_ok=True)
-    run(
-        [
-            sys.executable,
-            "-m",
-            "jupyter",
-            "nbconvert",
-            "--to",
-            "notebook",
-            "--execute",
-            "--output-dir",
-            str(RUN_DIR),
-            "--output",
-            notebook.name,
-            str(notebook),
-        ]
-    )
-
-
 def pipeline() -> None:
-    print("Running flow_preprocessing.ipynb", flush=True)
-    execute_notebook(PREPROCESS_NB)
-    print("Scoring flows with the saved model", flush=True)
+    print("Scoring processed_data CSVs with the saved model", flush=True)
     run([sys.executable, str(EXPORT_SCRIPT)])
     print("Pipeline finished", flush=True)
 

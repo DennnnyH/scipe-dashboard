@@ -26,12 +26,18 @@ function Card({
 export function StatCards({ summary }: { summary: Summary }) {
   const { counts } = summary;
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
       <Card
         title="Non-anomalies"
         value={counts.normal}
-        subtitle="Predicted class matches ground truth"
+        subtitle="Predicted class matches mapped userclass"
         accent="bg-status-green"
+      />
+      <Card
+        title="Unlabeled"
+        value={counts.unlabeled}
+        subtitle="No mapped userclass for srcIP"
+        accent="bg-status-unlabeled"
       />
       <Card
         title="Maybe anomalies"
@@ -46,9 +52,9 @@ export function StatCards({ summary }: { summary: Summary }) {
         accent="bg-status-red"
       />
       <Card
-        title="Flows evaluated"
+        title="Flows scored"
         value={counts.rows_total}
-        subtitle="All labeled flows scored by the saved model"
+        subtitle="All processed_data rows, including unlabeled"
         accent="bg-uh-gold"
       />
     </div>

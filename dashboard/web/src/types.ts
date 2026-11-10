@@ -1,5 +1,5 @@
 export type HealthStatus = "green" | "yellow" | "red";
-export type AnomalyTier = "normal" | "maybe" | "high";
+export type AnomalyTier = "normal" | "unlabeled" | "maybe" | "high";
 
 export interface Summary {
   source: string;
@@ -8,6 +8,7 @@ export interface Summary {
   counts: {
     rows_total: number;
     normal: number;
+    unlabeled: number;
     maybe_anomaly: number;
     high_confidence_anomaly: number;
   };

@@ -3,6 +3,7 @@ import type { Summary } from "../types";
 
 const COLORS = {
   normal: "#2D6A4F",
+  unlabeled: "#64748B",
   maybe: "#B8860B",
   high: "#9B2335",
 };
@@ -17,6 +18,11 @@ export function TierDonut({ summary }: { summary: Summary }) {
       name: "Non-anomalies",
       value: summary.counts.normal,
       color: COLORS.normal,
+    },
+    {
+      name: "Unlabeled",
+      value: summary.counts.unlabeled,
+      color: COLORS.unlabeled,
     },
     {
       name: "Maybe",

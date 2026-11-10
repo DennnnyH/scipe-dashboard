@@ -1,8 +1,10 @@
 """
-Score userclasses_mapped_v2.csv with the saved model and write dashboard JSON.
+Score every CSV in downloaded_data/processed_data with the saved joblib model
+and write dashboard JSON.
 
-Does not train. The bundle is user_classification_model.joblib:
-  model, scaler, label_encoders, target_encoder, feature_columns, missing_values.
+Does not train. Maps srcIP -> userclass from ip_user_map-v1.csv and
+HiloFlowIPMissingMap.csv (same as flow_preprocessing.ipynb). Unmapped rows
+are still predicted and counted as unlabeled, not as normal.
 
 Run from repo root:
   python scripts/export_dashboard_snapshot.py
@@ -18,7 +20,9 @@ import numpy as np
 import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CSV_PATH = REPO_ROOT / "userclasses_mapped_v2.csv"
+DATA_DIR = REPO_ROOT / "downloaded_data" / "processed_data"
+IP_MAP_PATH = REPO_ROOT / "ip_user_map-v1.csv"
+IP_MAP_EXTRA_PATH = REPO_ROOT / "HiloFlowIPMissingMap.csv"
 MODEL_PATH = REPO_ROOT / "user_classification_model.joblib"
 OUT_DIR = REPO_ROOT / "dashboard" / "data"
 
@@ -26,6 +30,7 @@ HIGH_CONF_THRESHOLD = 0.85
 LOW_CONF_THRESHOLD = 0.55
 
 DISPLAY_COLS = [
+    "source_file",
     "type",
     "agentIP",
     "srcIP",
@@ -39,7 +44,9 @@ DISPLAY_COLS = [
 ]
 
 
-def anomaly_tier(is_misclassified: bool, max_proba: float) -> str:
+def anomaly_tier(labeled: bool, is_misclassified: bool, max_proba: float) -> str:
+    if not labeled:
+        return "unlabeled"
     if not is_misclassified:
         return "normal"
     if max_proba >= HIGH_CONF_THRESHOLD:
@@ -67,6 +74,44 @@ def encode_column(series: pd.Series, encoder, fallback: float) -> pd.Series:
     return series.map(one)
 
 
+def load_ip_userclass_map() -> dict[str, str]:
+    if not IP_MAP_PATH.exists():
+        raise SystemExit(f"Missing IP map: {IP_MAP_PATH}")
+    primary = pd.read_csv(IP_MAP_PATH)
+    primary = primary.rename(columns={"ipaddr": "missing_srcIP", "userclass": "UserClass"})
+    frames = [primary[["missing_srcIP", "UserClass"]]]
+    if IP_MAP_EXTRA_PATH.exists():
+        extra = pd.read_csv(IP_MAP_EXTRA_PATH)
+        extra = extra.drop(columns=["hostname", "Who to ask"], errors="ignore")
+        extra = extra.dropna(subset=["missing_srcIP", "UserClass"])
+        frames.append(extra[["missing_srcIP", "UserClass"]])
+    combined = pd.concat(frames, ignore_index=True)
+    combined["missing_srcIP"] = combined["missing_srcIP"].astype(str).str.strip()
+    combined["UserClass"] = combined["UserClass"].astype(str).str.strip()
+    combined["UserClass"] = combined["UserClass"].replace({"Externel": "External"})
+    combined = combined.drop_duplicates(subset=["missing_srcIP"], keep="last")
+    return dict(zip(combined["missing_srcIP"], combined["UserClass"]))
+
+
+def load_processed_flows() -> pd.DataFrame:
+    if not DATA_DIR.is_dir():
+        raise SystemExit(f"Missing processed data directory: {DATA_DIR}")
+    files = sorted(DATA_DIR.glob("*.csv"))
+    if not files:
+        raise SystemExit(f"No CSV files in {DATA_DIR}")
+    frames = []
+    for path in files:
+        frame = pd.read_csv(path)
+        frame["source_file"] = path.name
+        frames.append(frame)
+    df = pd.concat(frames, ignore_index=True)
+    df = df.replace("-", np.nan)
+    df["srcIP"] = df["srcIP"].astype(str).str.strip()
+    ip_to_userclass = load_ip_userclass_map()
+    df["userclass"] = df["srcIP"].map(ip_to_userclass)
+    return df
+
+
 def transform_features(df: pd.DataFrame, bundle: dict) -> np.ndarray:
     columns = bundle["feature_columns"]
     missing = df.columns.difference(columns)
@@ -89,8 +134,6 @@ def transform_features(df: pd.DataFrame, bundle: dict) -> np.ndarray:
 
 
 def main() -> None:
-    if not CSV_PATH.exists():
-        raise SystemExit(f"Missing labeled CSV: {CSV_PATH}")
     if not MODEL_PATH.exists():
         raise SystemExit(f"Missing model: {MODEL_PATH}")
 
@@ -98,31 +141,36 @@ def main() -> None:
     model = bundle["model"]
     target_encoder = bundle["target_encoder"]
 
-    df = pd.read_csv(CSV_PATH)
-    df["userclass"] = df["userclass"].astype(str).str.strip()
-    df["userclass"] = df["userclass"].replace({"Externel": "External"})
+    df = load_processed_flows()
+    files = sorted({str(name) for name in df["source_file"]})
 
     features = transform_features(df, bundle)
     proba = model.predict_proba(features)
     max_proba = proba.max(axis=1)
     pred_labels = target_encoder.inverse_transform(model.predict(features))
     true_labels = df["userclass"].to_numpy()
+    labeled = pd.notna(df["userclass"]).to_numpy()
 
-    is_misclassified = pred_labels != true_labels
+    is_misclassified = labeled & (pred_labels != true_labels)
     tiers = [
-        anomaly_tier(bool(flag), float(score))
-        for flag, score in zip(is_misclassified, max_proba, strict=True)
+        anomaly_tier(bool(has_label), bool(flag), float(score))
+        for has_label, flag, score in zip(labeled, is_misclassified, max_proba, strict=True)
     ]
 
     counts = {
         "rows_total": int(len(tiers)),
         "normal": int(sum(tier == "normal" for tier in tiers)),
+        "unlabeled": int(sum(tier == "unlabeled" for tier in tiers)),
         "maybe_anomaly": int(sum(tier == "maybe" for tier in tiers)),
         "high_confidence_anomaly": int(sum(tier == "high" for tier in tiers)),
     }
 
     summary = {
-        "source": "userclasses_mapped_v2.csv scored by user_classification_model.joblib",
+        "source": (
+            f"{len(files)} files in downloaded_data/processed_data scored by "
+            "user_classification_model.joblib"
+        ),
+        "files": files,
         "model": bundle.get("model_name", type(model).__name__),
         "status": overall_status(counts),
         "counts": counts,
@@ -131,16 +179,17 @@ def main() -> None:
             "low_confidence_min_prob": LOW_CONF_THRESHOLD,
         },
         "definitions": {
-            "anomaly": "predicted_userclass != true_userclass",
+            "anomaly": "srcIP has a mapped userclass and predicted_userclass != true_userclass",
             "high": "misclassified and max(predict_proba) >= high threshold (confidently wrong)",
             "maybe": "misclassified and max(predict_proba) < high threshold",
-            "normal": "correct prediction",
+            "normal": "srcIP has a mapped userclass and predicted_userclass == true_userclass",
+            "unlabeled": "srcIP has no mapped userclass; predicted class is stored but not scored as anomaly or normal",
         },
     }
 
     scored = df.copy()
     scored["row_id"] = np.arange(len(scored))
-    scored["true_userclass"] = true_labels
+    scored["true_userclass"] = np.where(labeled, true_labels, "unlabeled")
     scored["predicted_userclass"] = pred_labels
     scored["max_probability"] = max_proba
     scored["is_misclassified"] = is_misclassified
@@ -170,7 +219,10 @@ def main() -> None:
         "rows": [row_to_dict(row) for _, row in anomaly_rows.iterrows()],
     }
 
-    accuracy = float((pred_labels == true_labels).mean())
+    if labeled.any():
+        accuracy = float((pred_labels[labeled] == true_labels[labeled]).mean())
+    else:
+        accuracy = float("nan")
     metrics = {
         "accuracy": round(accuracy, 6),
         "classes": [str(label) for label in target_encoder.classes_],
@@ -192,7 +244,10 @@ def main() -> None:
     (OUT_DIR / "metrics.json").write_text(json.dumps(metrics, indent=2, default=str))
 
     print(f"Wrote dashboard snapshot to {OUT_DIR}")
-    print(f"Status: {summary['status']} | counts: {counts} | accuracy: {accuracy:.4f}")
+    print(
+        f"Files: {len(files)} | labeled: {int(labeled.sum())}/{len(df)} | "
+        f"status: {summary['status']} | counts: {counts} | accuracy: {accuracy:.4f}"
+    )
 
 
 if __name__ == "__main__":
